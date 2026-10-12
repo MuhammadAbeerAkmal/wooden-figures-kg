@@ -112,15 +112,15 @@ These are deliberate. Each is also listed in [decisions.md](decisions.md).
 1. **Find site as P53.** `P53 has former or current location` is true but weaker
    than "was found at". Base CIDOC-CRM has no find event. The precise model is an
    encounter event from the CRMsci extension (`S19 Encounter Event`) or an
-   `E7 Activity` typed as "find". I kept P53 to stay inside base CRM and the
+   `E7 Activity` typed as "find". P53 was kept to stay inside base CRM and the
    class budget.
 2. **Period as E52 Time-Span, not E4 Period.** A cultural period such as the
    Middle Kingdom is properly an `E4 Period` with its own time-span, and the
    production `P10 falls within` it. Here the period is only used as a date
    range, so one class is saved.
 3. **Condition state without E14 Condition Assessment.** The assessment (who
-   looked, when) is an `E14` that `P35 has identified` the `E3`. I attach the
-   date directly to the state.
+   looked, when) is an `E14` that `P35 has identified` the `E3`. Here the
+   date is attached directly to the state.
 4. **Years as `xsd:gYear`.** `-2055` means 2055 BCE, as in the SQL column. XSD
    1.1 would read `-2055` as 2056 BCE because it has a year zero. With
    approximate period dates the one-year difference does not matter, but it must
