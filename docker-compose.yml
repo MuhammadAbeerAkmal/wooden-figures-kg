@@ -2,6 +2,7 @@
 #   web       http://localhost:8080   React UI (nginx), proxies /api to the API
 #   api       http://localhost:3000   NestJS + SQLite, seeds the data and loads the RDF on start
 #   oxigraph  http://localhost:7878   SPARQL endpoint and query UI
+# The host ports can be changed in .env (see .env.example).
 
 services:
   oxigraph:
@@ -12,3 +13,41 @@ services:
     # No volume on purpose: the API rebuilds the graph from the relational
     # data on every start, so SQLite stays the single source of truth.
     restart: unless-stopped
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    environment:
+      PORT: 3000
+      DATABASE_PATH: ./data/figures.sqlite
+      SPARQL_ENDPOINT: http://oxigraph:7878
+      SEED_ON_START: "true"
+      LOAD_RDF_ON_START: "true"
+    ports:
+      - "${API_PORT:-3000}:3000"
+    volumes:
+      - sqlite-data:/app/data
+    depends_on:
+      - oxigraph
+    healthcheck:
+      # The slim Node image has no curl, so Node itself makes the request.
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000/api/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    ports:
+      - "${WEB_PORT:-8080}:80"
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  sqlite-data:

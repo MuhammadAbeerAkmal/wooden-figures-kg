@@ -28,7 +28,8 @@ export async function validateShacl(data: Quad[], shapes: Quad[]): Promise<Shacl
     conforms: report.conforms,
     results: report.results.map((result) => ({
       focusNode: result.focusNode?.value ?? null,
-      path: result.path?.value ?? null,
+      // A sequence path is a blank node (an RDF list); only a simple path has a readable IRI.
+      path: result.path?.termType === 'NamedNode' ? result.path.value : null,
       value: result.value?.value ?? null,
       severity: localName(result.severity?.value),
       constraint: localName(result.sourceConstraintComponent?.value),

@@ -1,0 +1,9 @@
+**/node_modules
+**/dist
+.git
+.env
+data
+docs
+vocab
+apps/web/cypress/screenshots
+apps/web/cypress/videos

@@ -6,7 +6,7 @@ import { config } from '../config.js';
 import { FiguresService } from '../figures/figures.service.js';
 import { VocabService } from '../vocab/vocab.service.js';
 import { datasetQuads, toTurtle, vocabularyQuads } from './mapper.js';
-import { PREFIXES } from './namespaces.js';
+import { PREFIXES, RDFS_LABEL, RDF_TYPE } from './namespaces.js';
 import { parseTurtle, validateShacl } from './shacl.js';
 import type { ShaclReport } from './shacl.js';
 import { SparqlClient, TriplestoreError } from './sparql.client.js';
@@ -100,12 +100,33 @@ WHERE {
   }
 }
 
-/** Puts the triples of `firstSubject` first; n3 then groups the rest by subject. */
-function sortForDisplay(quads: Quad[], firstSubject: string): Quad[] {
+/**
+ * A triplestore returns triples in no particular order. For reading, start at
+ * `root` and walk outwards (breadth first), so each node appears after the node
+ * that links to it. Within a node: rdf:type, then rdfs:label, then the rest.
+ */
+export function sortForDisplay(quads: Quad[], root: string): Quad[] {
   const store = new Store(quads);
-  const first = store.getQuads(firstSubject, null, null, null);
-  const rest = store.getQuads(null, null, null, null).filter((q) => q.subject.value !== firstSubject);
-  return [...first, ...rest];
+  const rank = (predicate: string): string =>
+    predicate === RDF_TYPE.value ? '0' : predicate === RDFS_LABEL.value ? '1' : `2${predicate}`;
+
+  const sorted: Quad[] = [];
+  const seen = new Set<string>([root]);
+  const queue = [root];
+  for (let subject = queue.shift(); subject !== undefined; subject = queue.shift()) {
+    const triples = store
+      .getQuads(subject, null, null, null)
+      .sort((a, b) => rank(a.predicate.value).localeCompare(rank(b.predicate.value)));
+    for (const triple of triples) {
+      sorted.push(triple);
+      const { termType, value } = triple.object;
+      if (termType === 'NamedNode' && !seen.has(value)) {
+        seen.add(value);
+        queue.push(value);
+      }
+    }
+  }
+  return sorted;
 }
 
 export function asHttpError(error: unknown): unknown {
