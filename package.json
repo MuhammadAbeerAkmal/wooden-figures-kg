@@ -1,0 +1,24 @@
+{
+  "name": "wooden-figures-kg",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Relational model vs CIDOC-CRM knowledge graph for a fictional collection of ancient wooden figures",
+  "license": "MIT",
+  "workspaces": [
+    "apps/*"
+  ],
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "dev:api": "npm run start:dev -w apps/api",
+    "dev:web": "npm run dev -w apps/web",
+    "build": "npm run build -w apps/api && npm run build -w apps/web",
+    "test": "npm test -w apps/api",
+    "seed": "npm run seed -w apps/api",
+    "rdf:export": "npm run rdf:export -w apps/api",
+    "rdf:load": "npm run rdf:load -w apps/api",
+    "rdf:validate": "npm run rdf:validate -w apps/api",
+    "e2e": "npm run e2e -w apps/web"
+  }
+}
