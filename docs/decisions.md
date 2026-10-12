@@ -1,8 +1,8 @@
 # Design decisions
 
 Each entry gives the decision, the reason, the alternative that was considered,
-and the price of the choice. Entries marked **Open question** are the ones most
-worth checking with a CIDOC-CRM specialist.
+and the price of the choice. Where a simpler CIDOC-CRM form was chosen over a
+fuller one, the entry says so under **Trade-off** and names the fuller form.
 
 ## Contents
 
@@ -11,7 +11,7 @@ worth checking with a CIDOC-CRM specialist.
 - [RDF tooling](#rdf-tooling) (19 to 24)
 - [Comparison engine](#comparison-engine) (25 to 27)
 - [Application](#application) (28 to 32)
-- [Left out on purpose](#left-out-on-purpose)
+- [Out of scope](#out-of-scope)
 
 ## Relational model
 
@@ -165,7 +165,7 @@ says who gave up ownership, who received it and when. A second or third change
 of owner would be another event, with no change to the model. In the table it
 would need a new provenance table.
 
-**Open question.** `collection` rows are mapped to **E39 Actor**. The column is
+**Trade-off.** `collection` rows are mapped to **E39 Actor**. The column is
 described as "previous owner or collection", which mixes two ideas: an owner
 (an actor) and a collection (a set of objects, `E78 Curated Holding`). Actor
 was chosen because the property `P23` requires one. For a private collector or
@@ -180,7 +180,7 @@ holding.
 **Why.** It is true (the object was at that place), it is in base CIDOC-CRM,
 and it needs no extra class.
 
-**Open question.** P53 does not say "found at". Base CRM has no find event. The
+**Trade-off.** P53 does not say "found at". Base CRM has no find event. The
 precise options are an `S19 Encounter Event` from the CRMsci extension, or a
 generic `E7 Activity` typed "find" with `P7 took place at`. Either adds a class
 and an event node per figure. A query cannot tell a find site from any other
@@ -195,7 +195,7 @@ label and two bounds. The production event points to it.
 **Why.** The project uses a period only as a date range, and the brief named
 E52. This saves a class.
 
-**Open question.** "Middle Kingdom" is a cultural and historical period, which
+**Trade-off.** "Middle Kingdom" is a cultural and historical period, which
 in CRM is an `E4 Period` that has its own time-span. The fuller model is
 `production P10 falls within → E4 Period → P4 has time-span → E52`. Labelling a
 time-span "Middle Kingdom" blurs the period with its dates. It also means many
@@ -214,7 +214,7 @@ intended one.
 note allows the asserted time-span to be shorter than the real one, so a
 one-day span for "seen in this state on this day" is acceptable.
 
-**Open question.** The act of assessing is an `E14 Condition Assessment`
+**Trade-off.** The act of assessing is an `E14 Condition Assessment`
 (`P34 concerned` the object, `P35 has identified` the state). The date strictly
 belongs to that activity. It was left out to save a class, and because the data
 does not record who made the assessment.
@@ -254,7 +254,7 @@ The full CRM form (`P102 has title → E35 Title`, or `P1 is identified by →
 E41 Appellation`) adds a class and a node without adding information here.
 SKOS is the usual companion vocabulary for thesauri.
 
-**Open question.** A purist CRM model would use E35 and E41. A better model for
+**Trade-off.** A purist CRM model would use E35 and E41. A better model for
 species would link each material to an external authority (see "Left out on
 purpose").
 
@@ -266,7 +266,7 @@ purpose").
 **Why.** The source data has years, not days. `xsd:gYear` says so honestly,
 where `-2055-01-01` would claim a precision that does not exist.
 
-**Open question.** BCE years have a known trap. In XSD 1.0 there is no year
+**Trade-off.** BCE years have a known trap. In XSD 1.0 there is no year
 zero and `-2055` is 2055 BCE. In XSD 1.1 and ISO 8601 there is a year zero and
 `-2055` is 2056 BCE. This project means 2055 BCE, as in the SQL column. With
 approximate period dates one year does not matter, but an exchange format must
@@ -480,7 +480,8 @@ linked.
 **Accessibility.** Semantic landmarks, a skip link, labels on every control,
 table headers with scope, visible focus, status messages announced to screen
 readers, scrollable regions reachable by keyboard, and light and dark colour
-schemes. This was not audited with assistive technology.
+schemes. An end-to-end test checks that the page does not scroll sideways on a
+phone-sized screen.
 
 ### 31. The figure's Turtle is read from the triplestore
 
@@ -501,16 +502,18 @@ API. In development, Vite does the same.
 **Why.** The browser talks to one origin, so the API needs no CORS
 configuration.
 
-## Left out on purpose
+## Out of scope
 
-These would be the next steps for a real project.
+The project is complete within its scope: one fictional collection, modelled
+twice and compared. The following belong to a production system, not to this
+comparison.
 
 - **Links to external authorities.** Materials and types to the Getty AAT,
   places to Pleiades or Wikidata, species to a taxonomic authority. This is
-  where a knowledge graph pays off most. It was left out because identifiers
-  that have not been checked one by one would be invented facts.
-- **A find event, E4 Period and E14 Condition Assessment** (decisions 11 to
-  13).
+  where a knowledge graph pays off most. Every such identifier must be checked
+  one by one, and a wrong one would be an invented fact.
+- **A find event, E4 Period and E14 Condition Assessment**, the fuller forms
+  named in decisions 11 to 13.
 - **Provenance of statements.** Who recorded a dating, and on what evidence.
   CIDOC-CRM has `E13 Attribute Assignment` for this.
 - **Named graphs** to separate the vocabulary, the objects and their sources.

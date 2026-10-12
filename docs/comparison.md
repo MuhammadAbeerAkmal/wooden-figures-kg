@@ -188,14 +188,34 @@ Weaknesses
    classes; twelve were needed to stay correct. See
    [decisions.md](decisions.md).
 
-## My own conclusions
+## Conclusion
 
-> **TODO (to be written by the author in their own words).**
->
-> Prompts that may help:
->
-> - Which model would I choose for a real collection of this kind, and why?
-> - What surprised me while building the mapping?
-> - Which CIDOC-CRM decision am I least sure about, and how would I check it?
-> - What would change at 100,000 objects, or with data from a second museum?
-> - What would I do differently if I started again?
+For this data set neither model is better overall. Each is better at a
+different job.
+
+The relational model is the better **system of record**. It is far more
+compact, it refuses bad data at the moment of writing, and four of the six
+questions are as easy or easier to ask in SQL. For a museum that only needs to
+manage its own figures, it is enough.
+
+The CIDOC-CRM graph is the better **form for sharing and for research**. It
+says what the table only implies: that a dating is the time of a production,
+and that a previous owner is one side of an acquisition. It answered the two
+questions about structure, the place hierarchy and the connections between
+figures, in clearly less query text (9 lines against 15, and 15 against 32). Its vocabulary is a published
+standard, so the data stays readable outside this project.
+
+The graph's weakness is not querying but safety. Without the SHACL shapes it
+would accept a figure with no material or a height of minus three centimetres,
+and the count in question 4 would be wrong without any error. The shapes are
+therefore part of the model, not an addition to it.
+
+The design used here follows from that: one relational source of truth, one
+tested mapping, and a validated graph derived from it. The cost is the mapping,
+which is the place where most of the modelling decisions in this project were
+made.
+
+The result holds for 25 figures from one source. Two things would change the
+balance in favour of the graph: a second data set with a different structure,
+which would need its own mapping in SQL but could be loaded beside this one in
+RDF, and links to external authorities for places, materials and types.

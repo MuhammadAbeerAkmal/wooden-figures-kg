@@ -12,8 +12,9 @@ only presents them.
 > measurements, condition reports, previous owners and the museum itself are
 > invented for this project. Nothing here describes a real museum object. Only
 > the vocabularies use real-world terms (wood species, object types, Egyptian
-> place names, names of historical periods), and the period dates are rounded
-> conventional dates.
+> place names, names of historical periods). The period dates are conventional
+> approximate dates; published chronologies differ, most of all on where the Old
+> Kingdom ends.
 
 ## What it shows
 
@@ -28,11 +29,17 @@ only presents them.
 
 ## Screenshots
 
-_Placeholder. Add screenshots to `docs/screenshots/` and link them here._
+**One figure as a table row and as CIDOC-CRM triples**
 
-| Figure detail: table row and Turtle side by side | Comparison: SQL and SPARQL for one question |
+![Detail page: the relational record next to the Turtle of the same figure](docs/screenshots/detail.png)
+
+**One question answered in SQL and in SPARQL**
+
+![Comparison page: recursive CTE next to a SPARQL property path, with identical results](docs/screenshots/compare.png)
+
+| Figure browser with filters | Data entry form generated from the SHACL shapes |
 | --- | --- |
-| `docs/screenshots/detail.png` | `docs/screenshots/compare.png` |
+| ![List of figures with filters](docs/screenshots/list.png) | ![Form generated from SHACL](docs/screenshots/shacl-form.png) |
 
 ## Run it
 
