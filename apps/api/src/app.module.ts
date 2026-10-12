@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { CompareController } from './compare/compare.controller.js';
+import { CompareService } from './compare/compare.service.js';
 import { config } from './config.js';
 import { dataSourceOptions } from './database/data-source.js';
 import { ENTITIES } from './database/entities/index.js';
@@ -23,11 +25,12 @@ import { VocabService } from './vocab/vocab.service.js';
   imports: [TypeOrmModule.forRoot(dataSourceOptions()), TypeOrmModule.forFeature(ENTITIES)],
   // RdfController is listed before FiguresController so that
   // /figures/:inventoryNumber/rdf is matched before /figures/:inventoryNumber.
-  controllers: [HealthController, RdfController, FiguresController, VocabController],
+  controllers: [HealthController, RdfController, FiguresController, VocabController, CompareController],
   providers: [
     FiguresService,
     VocabService,
     RdfService,
+    CompareService,
     StartupService,
     { provide: SparqlClient, useFactory: () => new SparqlClient(config.sparqlEndpoint) },
   ],
