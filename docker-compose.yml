@@ -1,0 +1,14 @@
+# Start everything with:  docker compose up --build
+#   web       http://localhost:8080   React UI (nginx), proxies /api to the API
+#   api       http://localhost:3000   NestJS + SQLite, seeds the data and loads the RDF on start
+#   oxigraph  http://localhost:7878   SPARQL endpoint and query UI
+
+services:
+  oxigraph:
+    image: ghcr.io/oxigraph/oxigraph:0.4.11
+    command: serve --location /data --bind 0.0.0.0:7878
+    ports:
+      - "${OXIGRAPH_PORT:-7878}:7878"
+    # No volume on purpose: the API rebuilds the graph from the relational
+    # data on every start, so SQLite stays the single source of truth.
+    restart: unless-stopped

@@ -1,0 +1,292 @@
+# SHACL shapes for the wooden figures knowledge graph.
+#
+# The shapes play the role that NOT NULL, UNIQUE, CHECK and FOREIGN KEY play in
+# the relational schema. RDF itself accepts any triple, so without these shapes
+# nothing would stop a figure without a material or a height of -3 cm.
+#
+# Validate the exported data with:  npm run rdf:validate
+
+@prefix sh:   <http://www.w3.org/ns/shacl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix crm:  <http://www.cidoc-crm.org/cidoc-crm/> .
+@prefix type: <https://example.org/wfkg/type/> .
+@prefix unit: <https://example.org/wfkg/unit/> .
+@prefix wfs:  <https://example.org/wfkg/shapes/> .
+
+# ---------------------------------------------------------------------------
+# The figure (table: figure)
+# ---------------------------------------------------------------------------
+
+wfs:FigureShape
+    a sh:NodeShape ;
+    sh:targetClass crm:E22_Human-Made_Object ;
+    rdfs:label "Wooden figure" ;
+
+    sh:property [
+        sh:path rdfs:label ;
+        sh:name "Title" ;
+        sh:order 1 ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:minLength 3 ; sh:maxLength 200 ;
+        sh:message "A figure needs exactly one title of 3 to 200 characters."
+    ] ;
+
+    sh:property [
+        sh:path crm:P48_has_preferred_identifier ;
+        sh:name "Inventory number" ;
+        sh:order 2 ;
+        sh:node wfs:IdentifierShape ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "A figure needs exactly one inventory number of the form WF-0000."
+    ] ;
+
+    sh:property [
+        sh:path crm:P2_has_type ;
+        sh:name "Object type" ;
+        sh:order 3 ;
+        sh:class crm:E55_Type ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "A figure needs exactly one object type."
+    ] ;
+
+    # The type must come from the object type branch of the thesaurus,
+    # not, for example, from the condition terms.
+    sh:property [
+        sh:path ( crm:P2_has_type crm:P127_has_broader_term ) ;
+        sh:hasValue type:object-type ;
+        sh:message "The type of a figure must be an object type (broader term: Object type)."
+    ] ;
+
+    sh:property [
+        sh:path crm:P45_consists_of ;
+        sh:name "Wood species" ;
+        sh:order 4 ;
+        sh:class crm:E57_Material ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "A figure needs exactly one material (wood species)."
+    ] ;
+
+    sh:property [
+        sh:path crm:P53_has_former_or_current_location ;
+        sh:name "Find site" ;
+        sh:description "Leave empty when the find site is not recorded." ;
+        sh:order 5 ;
+        sh:class crm:E53_Place ;
+        sh:maxCount 1 ;
+        sh:message "A figure has at most one find site, and it must be a place."
+    ] ;
+
+    sh:property [
+        sh:path crm:P108i_was_produced_by ;
+        sh:name "Production" ;
+        sh:order 6 ;
+        sh:node wfs:ProductionShape ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "A figure needs exactly one production event, which carries the dating."
+    ] ;
+
+    sh:property [
+        sh:path crm:P3_has_note ;
+        sh:name "Description" ;
+        sh:order 7 ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "A figure needs exactly one description."
+    ] ;
+
+    sh:property [
+        sh:path crm:P43_has_dimension ;
+        sh:name "Dimensions" ;
+        sh:order 8 ;
+        sh:node wfs:DimensionShape ;
+        sh:minCount 1 ; sh:maxCount 3 ;
+        # Height is mandatory (height_cm is NOT NULL); width and depth are optional.
+        sh:qualifiedValueShape [
+            sh:property [ sh:path crm:P2_has_type ; sh:hasValue type:height ]
+        ] ;
+        sh:qualifiedMinCount 1 ; sh:qualifiedMaxCount 1 ;
+        sh:message "A figure needs one to three dimensions, exactly one of which is the height."
+    ] ;
+
+    sh:property [
+        sh:path crm:P24i_changed_ownership_through ;
+        sh:name "Acquisition" ;
+        sh:order 9 ;
+        sh:node wfs:AcquisitionShape ;
+        sh:maxCount 1 ;
+        sh:message "A figure has at most one acquisition event in this data set."
+    ] ;
+
+    sh:property [
+        sh:path crm:P44_has_condition ;
+        sh:name "Condition states" ;
+        sh:order 10 ;
+        sh:node wfs:ConditionShape ;
+        sh:message "Each condition state needs a condition type and the date it was observed."
+    ] .
+
+# ---------------------------------------------------------------------------
+# Nodes that belong to one figure
+# ---------------------------------------------------------------------------
+
+wfs:IdentifierShape
+    a sh:NodeShape ;
+    sh:targetClass crm:E42_Identifier ;
+    rdfs:label "Inventory number" ;
+    sh:class crm:E42_Identifier ;
+    sh:property [
+        sh:path crm:P190_has_symbolic_content ;
+        sh:name "Number" ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:pattern "^WF-[0-9]{4}$" ;
+        sh:message "An inventory number looks like WF-0001."
+    ] .
+
+wfs:ProductionShape
+    a sh:NodeShape ;
+    sh:targetClass crm:E12_Production ;
+    rdfs:label "Production" ;
+    sh:class crm:E12_Production ;
+    sh:property [
+        sh:path crm:P4_has_time-span ;
+        sh:name "Period" ;
+        sh:class crm:E52_Time-Span ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "A production event needs exactly one time-span (the period)."
+    ] .
+
+wfs:AcquisitionShape
+    a sh:NodeShape ;
+    sh:targetClass crm:E8_Acquisition ;
+    rdfs:label "Acquisition" ;
+    sh:class crm:E8_Acquisition ;
+    sh:property [
+        sh:path crm:P22_transferred_title_to ;
+        sh:name "Acquired by" ;
+        sh:class crm:E39_Actor ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "An acquisition needs exactly one receiving actor."
+    ] ;
+    sh:property [
+        sh:path crm:P23_transferred_title_from ;
+        sh:name "Previous owner" ;
+        sh:class crm:E39_Actor ;
+        sh:maxCount 1 ;
+        sh:message "An acquisition has at most one previous owner, and it must be an actor."
+    ] ;
+    sh:property [
+        sh:path crm:P4_has_time-span ;
+        sh:name "Date" ;
+        sh:class crm:E52_Time-Span ;
+        sh:maxCount 1 ;
+        sh:message "An acquisition has at most one time-span."
+    ] .
+
+wfs:DimensionShape
+    a sh:NodeShape ;
+    sh:targetClass crm:E54_Dimension ;
+    rdfs:label "Dimension" ;
+    sh:class crm:E54_Dimension ;
+    sh:property [
+        sh:path crm:P2_has_type ;
+        sh:name "Kind" ;
+        sh:in ( type:height type:width type:depth ) ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "A dimension is a height, a width or a depth."
+    ] ;
+    sh:property [
+        sh:path crm:P90_has_value ;
+        sh:name "Value" ;
+        sh:datatype xsd:decimal ;
+        sh:minExclusive 0 ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "A dimension needs exactly one decimal value greater than 0."
+    ] ;
+    sh:property [
+        sh:path crm:P91_has_unit ;
+        sh:name "Unit" ;
+        sh:hasValue unit:cm ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "Dimensions are recorded in centimetres."
+    ] .
+
+wfs:ConditionShape
+    a sh:NodeShape ;
+    sh:targetClass crm:E3_Condition_State ;
+    rdfs:label "Condition state" ;
+    sh:class crm:E3_Condition_State ;
+    sh:property [
+        sh:path crm:P2_has_type ;
+        sh:name "Condition" ;
+        sh:in ( type:condition-good type:condition-fair type:condition-poor type:condition-fragmentary ) ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "The condition is one of: good, fair, poor, fragmentary."
+    ] ;
+    sh:property [
+        sh:path crm:P4_has_time-span ;
+        sh:name "Observed on" ;
+        sh:class crm:E52_Time-Span ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "A condition state needs exactly one time-span (the assessment date)."
+    ] ;
+    sh:property [
+        sh:path crm:P3_has_note ;
+        sh:name "Note" ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1
+    ] .
+
+# ---------------------------------------------------------------------------
+# Shared vocabulary nodes (tables: period, site, material, object_type, collection)
+# ---------------------------------------------------------------------------
+
+wfs:TimeSpanShape
+    a sh:NodeShape ;
+    sh:targetClass crm:E52_Time-Span ;
+    rdfs:label "Time-span" ;
+    sh:property [
+        sh:path rdfs:label ;
+        sh:minCount 1 ;
+        sh:message "A time-span needs a label."
+    ] ;
+    sh:property [
+        sh:path crm:P82a_begin_of_the_begin ;
+        sh:or ( [ sh:datatype xsd:gYear ] [ sh:datatype xsd:date ] ) ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "A time-span needs exactly one earliest start, as xsd:gYear or xsd:date."
+    ] ;
+    sh:property [
+        sh:path crm:P82b_end_of_the_end ;
+        sh:or ( [ sh:datatype xsd:gYear ] [ sh:datatype xsd:date ] ) ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "A time-span needs exactly one latest end, as xsd:gYear or xsd:date."
+    ] .
+
+wfs:PlaceShape
+    a sh:NodeShape ;
+    sh:targetClass crm:E53_Place ;
+    rdfs:label "Place" ;
+    sh:property [
+        sh:path rdfs:label ;
+        sh:minCount 1 ;
+        sh:message "A place needs a label."
+    ] ;
+    sh:property [
+        sh:path crm:P89_falls_within ;
+        sh:class crm:E53_Place ;
+        sh:maxCount 1 ;
+        sh:message "A place falls within at most one parent place in this data set."
+    ] .
+
+wfs:LabelledVocabularyShape
+    a sh:NodeShape ;
+    sh:targetClass crm:E57_Material, crm:E55_Type, crm:E39_Actor, crm:E58_Measurement_Unit ;
+    rdfs:label "Vocabulary term" ;
+    sh:property [
+        sh:path rdfs:label ;
+        sh:minCount 1 ;
+        sh:message "A vocabulary term needs a label."
+    ] .
